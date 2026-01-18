@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { MobileMenu } from './MobileMenu'
 import { HeaderActions } from './HeaderActions'
-import { ThemeToggle } from '@/components/ui'
 
 export const HeaderMobile: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -39,10 +38,7 @@ export const HeaderMobile: React.FC = () => {
         </div>
 
         {/* Ações do header */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <HeaderActions />
-        </div>
+        <HeaderActions />
       </header>
 
       {/* Menu drawer */}
