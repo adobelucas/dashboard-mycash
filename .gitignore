@@ -29,6 +29,9 @@ dist-ssr
 .env.production.local
 .env.development.local
 
+# Example file (pode ser commitado)
+!.env.example
+
 # Build outputs
 build
 .vite
