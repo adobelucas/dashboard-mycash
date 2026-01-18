@@ -1,41 +1,36 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BalanceCard, SummaryCard, TransactionList, QuickActions, Chart } from '@/components/dashboard'
+import {
+  BalanceCard,
+  SummaryCard,
+  QuickActions,
+  Chart,
+  CategoryCard,
+  CardsAccountsSection,
+  UpcomingExpensesSection,
+  DetailedStatement,
+  type QuickAction,
+  type CardAccount,
+  type UpcomingExpense,
+  type DetailedStatementTransaction,
+} from '@/components/dashboard'
 import { Loading } from '@/components/ui'
 import { useApp } from '@/contexts'
-import type { QuickAction } from '@/components/dashboard'
-
-// Dados mockados para fallback
-const mockTransactions = [
-  {
-    id: '1',
-    description: 'Salário',
-    amount: 5000,
-    type: 'income' as const,
-    category: 'Salário',
-    date: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    description: 'Supermercado',
-    amount: -350.50,
-    type: 'expense' as const,
-    category: 'Alimentação',
-    date: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    description: 'Netflix',
-    amount: -29.90,
-    type: 'expense' as const,
-    category: 'Entretenimento',
-    date: new Date(Date.now() - 172800000).toISOString(),
-  },
-]
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { transactions, balance, isLoading } = useApp()
+  const [statementSearchQuery, setStatementSearchQuery] = useState('')
+  const [statementFilterType, setStatementFilterType] = useState('expense')
+  const [statementPage, setStatementPage] = useState(1)
+
+  // Dados mockados conforme Figma
+  const categoryCards = useMemo(() => [
+    { category: 'Aluguel', percentage: 25, amount: 4000 },
+    { category: 'Alimentação', percentage: 15, amount: 2000 },
+    { category: 'Mercado', percentage: 5, amount: 1500 },
+    { category: 'Academia', percentage: 3, amount: 120 },
+  ], [])
 
   const quickActions: QuickAction[] = useMemo(() => [
     {
@@ -98,13 +93,7 @@ export const Dashboard: React.FC = () => {
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => acc + Math.abs(t.amount), 0)
 
-    const savings = income - expense
-
-    return { income, expense, savings }
-  }, [transactions])
-
-  const recentTransactions = useMemo(() => {
-    return transactions.slice(0, 5)
+    return { income: income || 12000, expense: expense || 10000 }
   }, [transactions])
 
   const formatCurrency = (value: number) => {
@@ -113,6 +102,95 @@ export const Dashboard: React.FC = () => {
       currency: 'BRL',
     }).format(value)
   }
+
+  // Dados mockados para Cards & Contas
+  const mockAccounts: CardAccount[] = useMemo(() => [
+    { id: '1', name: 'Nubank', balance: 120, dueDay: 10, lastDigits: '5897' },
+    { id: '2', name: 'Inter', balance: 2300, dueDay: 21, lastDigits: '5897' },
+    { id: '3', name: 'Picpay', balance: 17000, dueDay: 12, lastDigits: '5897' },
+  ], [])
+
+  // Dados mockados para Próximas despesas
+  const mockUpcomingExpenses: UpcomingExpense[] = useMemo(() => {
+    const now = new Date()
+    const dueDate = new Date(now.getFullYear(), now.getMonth(), 21)
+    return Array.from({ length: 5 }, (_, i) => ({
+      id: `upcoming-${i + 1}`,
+      description: 'Conta de Luz',
+      amount: 154,
+      dueDate: dueDate.toISOString(),
+      card: 'Crédito Nubank',
+      cardLastDigits: '5897',
+    }))
+  }, [])
+
+  // Dados para gráfico Fluxo financeiro (12 meses)
+  const monthlyFlowData = useMemo(() => {
+    const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
+    return months.map((month, index) => ({
+      label: month,
+      income: 8000 + (index * 500),
+      expense: 7000 + (index * 400),
+    }))
+  }, [])
+
+  // Dados mockados para Extrato detalhado
+  const mockDetailedTransactions: DetailedStatementTransaction[] = useMemo(() => [
+    {
+      id: '1',
+      member: { id: '1', name: 'Membro 1' },
+      date: new Date(2026, 0, 17).toISOString(),
+      description: 'Conta de água',
+      category: 'Manutenção',
+      account: 'Conta corrente',
+      installments: '-',
+      amount: 100,
+      type: 'expense',
+    },
+    {
+      id: '2',
+      member: { id: '2', name: 'Membro 2' },
+      date: new Date(2026, 0, 17).toISOString(),
+      description: 'Conta de Luz',
+      category: 'Manutenção',
+      account: 'Conta corrente',
+      installments: '-',
+      amount: 150,
+      type: 'expense',
+    },
+    {
+      id: '3',
+      member: { id: '3', name: 'Membro 3' },
+      date: new Date(2026, 0, 17).toISOString(),
+      description: 'Passeio no parque',
+      category: 'Lazer',
+      account: 'Cartão XP',
+      installments: '1/1',
+      amount: 750,
+      type: 'expense',
+    },
+  ], [])
+
+  // Filtrar transações do extrato detalhado
+  const filteredDetailedTransactions = useMemo(() => {
+    let filtered = mockDetailedTransactions
+
+    if (statementFilterType !== 'all') {
+      filtered = filtered.filter(t => t.type === statementFilterType)
+    }
+
+    if (statementSearchQuery) {
+      const query = statementSearchQuery.toLowerCase()
+      filtered = filtered.filter(t =>
+        t.description.toLowerCase().includes(query) ||
+        t.category.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [mockDetailedTransactions, statementFilterType, statementSearchQuery])
+
+  const totalDetailedItems = filteredDetailedTransactions.length
 
   if (isLoading) {
     return <Loading fullScreen message="Carregando dashboard..." />
@@ -130,11 +208,23 @@ export const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Cards de Saldo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Cards de Categorias (linha superior) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {categoryCards.map((category) => (
+          <CategoryCard
+            key={category.category}
+            category={category.category}
+            percentage={category.percentage}
+            amount={category.amount}
+          />
+        ))}
+      </div>
+
+      {/* Cards principais (Saldo, Receitas, Despesas) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <BalanceCard
-          title="Saldo Total"
-          amount={balance}
+          title="Saldo total"
+          amount={balance || 2000}
           icon={
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -142,7 +232,7 @@ export const Dashboard: React.FC = () => {
           }
         />
         <SummaryCard
-          title="Receitas do Mês"
+          title="Receitas"
           value={formatCurrency(monthlyStats.income)}
           variant="success"
           icon={
@@ -152,7 +242,7 @@ export const Dashboard: React.FC = () => {
           }
         />
         <SummaryCard
-          title="Despesas do Mês"
+          title="Despesas"
           value={formatCurrency(monthlyStats.expense)}
           variant="error"
           icon={
@@ -161,61 +251,52 @@ export const Dashboard: React.FC = () => {
             </svg>
           }
         />
-        <SummaryCard
-          title="Economia do Mês"
-          value={formatCurrency(monthlyStats.savings)}
-          variant={monthlyStats.savings >= 0 ? 'success' : 'error'}
-          icon={
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
       </div>
 
       {/* Ações Rápidas */}
       <QuickActions actions={quickActions} />
 
-      {/* Transações Recentes e Gráficos */}
+      {/* Layout 2 colunas: Gráfico Fluxo financeiro (esquerda) + Cards & contas + Próximas despesas (direita) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TransactionList transactions={recentTransactions.length > 0 ? recentTransactions : mockTransactions} />
-        <div className="space-y-6">
-          {/* Gráfico de Receitas vs Despesas */}
+        {/* Gráfico Fluxo financeiro */}
+        <div>
           <Chart
-            title="Receitas vs Despesas"
-            data={[
-              { label: 'Receitas', value: monthlyStats.income, color: 'var(--color-success)' },
-              { label: 'Despesas', value: monthlyStats.expense, color: 'var(--color-error)' },
-            ]}
-            type="bar"
-            height={150}
+            title="Fluxo financeiro"
+            data={monthlyFlowData.flatMap((month) => [
+              { label: `${month.label} - Receitas`, value: month.income, color: 'var(--color-success)' },
+              { label: `${month.label} - Despesas`, value: month.expense, color: 'var(--color-error)' },
+            ])}
+            type="line"
+            height={250}
           />
-          {/* Gráfico de Categorias */}
-          {transactions.length > 0 && (
-            <Chart
-              title="Gastos por Categoria"
-              data={useMemo(() => {
-                const categoryTotals = transactions
-                  .filter(t => t.type === 'expense')
-                  .reduce((acc, t) => {
-                    acc[t.category] = (acc[t.category] || 0) + Math.abs(t.amount)
-                    return acc
-                  }, {} as Record<string, number>)
-                
-                return Object.entries(categoryTotals)
-                  .map(([category, total]) => ({
-                    label: category,
-                    value: total,
-                  }))
-                  .sort((a, b) => b.value - a.value)
-                  .slice(0, 5)
-              }, [transactions])}
-              type="pie"
-              height={200}
-            />
-          )}
+        </div>
+
+        {/* Cards & contas + Próximas despesas */}
+        <div className="space-y-6">
+          <CardsAccountsSection
+            accounts={mockAccounts}
+            onAdd={() => navigate('/cards')}
+            onViewAll={() => navigate('/cards')}
+          />
+          <UpcomingExpensesSection
+            expenses={mockUpcomingExpenses}
+            onAdd={() => navigate('/transactions')}
+          />
         </div>
       </div>
+
+      {/* Extrato detalhado */}
+      <DetailedStatement
+        transactions={filteredDetailedTransactions}
+        searchQuery={statementSearchQuery}
+        onSearchChange={setStatementSearchQuery}
+        filterType={statementFilterType}
+        onFilterTypeChange={setStatementFilterType}
+        currentPage={statementPage}
+        totalPages={Math.ceil(totalDetailedItems / 5)}
+        totalItems={totalDetailedItems}
+        onPageChange={setStatementPage}
+      />
     </div>
   )
 }

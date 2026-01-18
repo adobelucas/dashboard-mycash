@@ -12,3 +12,15 @@ export type { QuickActionsProps, QuickAction } from './QuickActions'
 
 export { Chart } from './Chart'
 export type { ChartProps, ChartData } from './Chart'
+
+export { CategoryCard } from './CategoryCard'
+export type { CategoryCardProps } from './CategoryCard'
+
+export { CardsAccountsSection } from './CardsAccountsSection'
+export type { CardsAccountsSectionProps, CardAccount } from './CardsAccountsSection'
+
+export { UpcomingExpensesSection } from './UpcomingExpensesSection'
+export type { UpcomingExpensesSectionProps, UpcomingExpense } from './UpcomingExpensesSection'
+
+export { DetailedStatement } from './DetailedStatement'
+export type { DetailedStatementProps, DetailedStatementTransaction } from './DetailedStatement'
