@@ -162,7 +162,7 @@ export const Chart: React.FC<ChartProps> = ({
                 key={`area-${idx}`}
                 d={series.areaPath}
                 fill={series.color}
-                opacity="0.3"
+                opacity="0.4"
               />
             ))}
             
@@ -173,7 +173,7 @@ export const Chart: React.FC<ChartProps> = ({
                 points={series.linePoints}
                 fill="none"
                 stroke={series.color}
-                strokeWidth="1.5"
+                strokeWidth="2"
               />
             ))}
             

@@ -269,12 +269,12 @@ export const Dashboard: React.FC = () => {
               {
                 label: 'Receitas',
                 data: monthlyFlowData.income,
-                color: 'var(--color-success)',
+                color: '#84cc16', // lime-500 (amarelo-verde do Figma)
               },
               {
                 label: 'Despesas',
                 data: monthlyFlowData.expense,
-                color: 'var(--color-error)',
+                color: '#ef4444', // red-500 (vermelho do Figma)
               },
             ]}
             areaLabels={monthlyFlowData.labels}
