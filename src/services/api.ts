@@ -260,19 +260,44 @@ export const userApi = {
       .single()
 
     if (error) throw error
-    return data as User
+    // Transformar de snake_case para camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      avatar: data.avatar_url,
+      phone: data.phone,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    } as User
   },
 
   async updateProfile(userId: string, updates: Partial<User>) {
+    // Transformar de camelCase para snake_case
+    const dbUpdates: any = {}
+    if (updates.name) dbUpdates.name = updates.name
+    if (updates.email) dbUpdates.email = updates.email
+    if (updates.avatar) dbUpdates.avatar_url = updates.avatar
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone
+
     const { data, error } = await supabase
       .from('users')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', userId)
       .select()
       .single()
 
     if (error) throw error
-    return data as User
+    // Transformar de snake_case para camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      avatar: data.avatar_url,
+      phone: data.phone,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    } as User
   },
 }
 
