@@ -24,38 +24,41 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Aplicar tema imediatamente antes do React renderizar
-    const root = document.documentElement
+    // Inicializar com 'light' por padrão para evitar erros
+    if (typeof window === 'undefined') return 'light'
     
-    const stored = localStorage.getItem('theme')
-    if (stored === 'light' || stored === 'dark') {
-      if (stored === 'dark') {
-        root.classList.add('dark')
-      } else {
-        root.classList.remove('dark')
+    try {
+      const stored = localStorage.getItem('theme')
+      if (stored === 'light' || stored === 'dark') {
+        return stored
       }
-      return stored
+      
+      // Verificar preferência do sistema
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark'
+      }
+    } catch (error) {
+      console.error('Error reading theme from localStorage:', error)
     }
     
-    // Verificar preferência do sistema
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (prefersDark) {
-      root.classList.add('dark')
-      return 'dark'
-    }
-    
-    root.classList.remove('dark')
     return 'light'
   })
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     const root = document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
     }
-    localStorage.setItem('theme', theme)
+    
+    try {
+      localStorage.setItem('theme', theme)
+    } catch (error) {
+      console.error('Error saving theme to localStorage:', error)
+    }
   }, [theme])
 
   const toggleTheme = () => {
