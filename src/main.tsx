@@ -20,6 +20,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 // Registra service worker para PWA
-if (process.env.NODE_ENV === 'production') {
+if (import.meta.env.PROD) {
   serviceWorker.register()
 }

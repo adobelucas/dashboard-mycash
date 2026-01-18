@@ -1,9 +1,9 @@
+@import './accessibility.css';
+@import './dark.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './accessibility.css';
-@import './dark.css';
 
 :root {
   /* ============================================

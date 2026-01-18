@@ -147,14 +147,27 @@ export const Transactions: React.FC = () => {
 
       {/* Lista de Transações */}
       <TransactionList
-        transactions={displayedItems}
+        transactions={displayedItems.map(t => ({
+          id: t.id,
+          description: t.description,
+          amount: t.amount,
+          type: t.type,
+          category: t.category,
+          date: t.date,
+        }))}
         title={`${filteredTransactions.length} transações encontradas`}
         onTransactionClick={(transaction) => {
-          setEditingTransaction(transaction)
-          setIsModalOpen(true)
+          const fullTransaction = displayedItems.find(t => t.id === transaction.id)
+          if (fullTransaction) {
+            setEditingTransaction(fullTransaction)
+            setIsModalOpen(true)
+          }
         }}
         onTransactionDelete={(transaction) => {
-          setDeleteConfirm({ isOpen: true, transaction })
+          const fullTransaction = displayedItems.find(t => t.id === transaction.id)
+          if (fullTransaction) {
+            setDeleteConfirm({ isOpen: true, transaction: fullTransaction })
+          }
         }}
       />
 
