@@ -1,9 +1,10 @@
 import React from 'react'
-import { Button } from '@/components/ui'
+import { Button, ThemeToggle } from '@/components/ui'
 
 export const HeaderActions: React.FC = () => {
   return (
     <div className="flex items-center gap-2">
+      <ThemeToggle />
       <Button
         variant="primary"
         size="sm"
