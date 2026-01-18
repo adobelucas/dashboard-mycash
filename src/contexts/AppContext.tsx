@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { supabase } from '@/services/supabase'
 import type { User, Transaction, Card } from '@/types'
-import { transactionsApi, cardsApi, userApi, dashboardApi } from '@/services/api'
+import { transactionsApi, cardsApi, dashboardApi } from '@/services/api'
 
 interface AppContextType {
   user: User | null
