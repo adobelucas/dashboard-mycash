@@ -38,53 +38,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Carregar usuário atual
+  // Inicializar sem autenticação (modo demo/mock)
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        if (authUser) {
-          const userData = await userApi.getProfile(authUser.id)
-          setUser(userData)
-        }
-      } catch (err) {
-        console.error('Error loading user:', err)
-        setError('Erro ao carregar usuário')
-      }
-    }
-
-    loadUser()
-
-    // Listener para mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        try {
-          const userData = await userApi.getProfile(session.user.id)
-          setUser(userData)
-        } catch (err) {
-          console.error('Error loading user:', err)
-        }
-      } else {
-        setUser(null)
-        setTransactions([])
-        setCards([])
-        setBalance(0)
-      }
+    // Definir um usuário mock ou vazio para trabalhar sem autenticação
+    setUser({
+      id: 'demo-user',
+      name: 'Usuário Demo',
+      email: 'demo@mycash.com',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     })
-
-    return () => {
-      subscription.unsubscribe()
-    }
+    
+    // Carregar dados mockados ou do Supabase sem autenticação
+    setIsLoading(false)
   }, [])
-
-  // Carregar dados quando usuário estiver disponível
-  useEffect(() => {
-    if (user) {
-      refreshAll()
-    } else {
-      setIsLoading(false)
-    }
-  }, [user])
 
   const refreshTransactions = async () => {
     if (!user) return
