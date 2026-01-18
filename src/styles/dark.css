@@ -1,0 +1,40 @@
+/* Modo Escuro */
+
+.dark {
+  /* Cores Semânticas - Dark Mode */
+  --color-background: var(--gray-900);
+  --color-surface: var(--gray-800);
+  --color-text-primary: var(--gray-50);
+  --color-text-secondary: var(--gray-300);
+  --color-text-tertiary: var(--gray-500);
+  --color-border: var(--gray-700);
+  --color-divider: var(--gray-700);
+}
+
+.dark .bg-background {
+  background-color: var(--color-background);
+}
+
+.dark .bg-surface {
+  background-color: var(--color-surface);
+}
+
+.dark .text-text-primary {
+  color: var(--color-text-primary);
+}
+
+.dark .text-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.dark .text-text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.dark .border-border {
+  border-color: var(--color-border);
+}
+
+.dark .border-divider {
+  border-color: var(--color-divider);
+}

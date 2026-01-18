@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './accessibility.css';
+@import './dark.css';
+
+:root {
+  /* ============================================
+     CORES SEMÂNTICAS
+     ============================================ */
+  --color-primary: var(--lime-500);
+  --color-secondary: var(--gray-600);
+  --color-background: var(--gray-50);
+  --color-surface: #ffffff;
+  --color-text-primary: var(--gray-900);
+  --color-text-secondary: var(--gray-600);
+  --color-text-tertiary: var(--gray-400);
+  --color-border: var(--gray-200);
+  --color-divider: var(--gray-200);
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* ============================================
+     CORES PRIMITIVAS - GRAY
+     ============================================ */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* ============================================
+     CORES PRIMITIVAS - LIME
+     Valores temporários - serão substituídos pelos valores do Figma
+     ============================================ */
+  --lime-50: #f7fee7;
+  --lime-100: #ecfccb;
+  --lime-200: #d9f99d;
+  --lime-300: #bef264;
+  --lime-400: #a3e635;
+  --lime-500: #84cc16;
+  --lime-600: #65a30d;
+  --lime-700: #4d7c0f;
+  --lime-800: #365314;
+  --lime-900: #1a2e05;
+
+  /* ============================================
+     ESPAÇAMENTOS SEMÂNTICOS
+     ============================================ */
+  --spacing-container: var(--spacing-8);
+  --spacing-section: var(--spacing-12);
+  --spacing-card: var(--spacing-6);
+  --spacing-item: var(--spacing-4);
+  --spacing-group: var(--spacing-8);
+
+  /* ============================================
+     ESPAÇAMENTOS PRIMITIVOS
+     ============================================ */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* ============================================
+     TIPOGRAFIA SEMÂNTICA
+     ============================================ */
+  --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+
+  /* ============================================
+     TIPOGRAFIA PRIMITIVA - TAMANHOS
+     ============================================ */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  /* ============================================
+     TIPOGRAFIA PRIMITIVA - PESOS
+     ============================================ */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ============================================
+     TIPOGRAFIA PRIMITIVA - LINE HEIGHT
+     ============================================ */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ============================================
+     SHAPE - BORDER RADIUS
+     ============================================ */
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     SHAPE - SHADOWS
+     ============================================ */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* ============================================
+     SHAPE - BORDERS
+     ============================================ */
+  --border-width: 1px;
+  --border-color: var(--color-border);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-text-primary font-body;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+  }
+}
+
+@layer utilities {
+  /* Utilitários para layout fluido */
+  .container-fluid {
+    @apply w-full;
+  }
+  
+  .container-max {
+    @apply w-full max-w-[1400px] lg:max-w-[1600px];
+  }
+}
