@@ -1,4 +1,6 @@
-# Dashboard MYCash+
+# Dashboard MYCash
+
+> Última atualização: Build corrigido e testado localmente ✅+
 
 Dashboard financeiro pessoal desenvolvido com React, TypeScript, Vite e Tailwind CSS.
 
