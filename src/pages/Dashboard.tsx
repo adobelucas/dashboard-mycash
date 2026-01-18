@@ -19,18 +19,46 @@ import { useApp } from '@/contexts'
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
-  const { transactions, balance, isLoading } = useApp()
+  const { transactions, accounts, categories, familyMembers, balance, isLoading } = useApp()
   const [statementSearchQuery, setStatementSearchQuery] = useState('')
   const [statementFilterType, setStatementFilterType] = useState('expense')
   const [statementPage, setStatementPage] = useState(1)
 
-  // Dados mockados conforme Figma
-  const categoryCards = useMemo(() => [
-    { category: 'Aluguel', percentage: 25, amount: 4000 },
-    { category: 'Alimentação', percentage: 15, amount: 2000 },
-    { category: 'Mercado', percentage: 5, amount: 1500 },
-    { category: 'Academia', percentage: 3, amount: 120 },
-  ], [])
+  // Calcular top categorias a partir de transações reais
+  const categoryCards = useMemo(() => {
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+
+    const monthTransactions = transactions.filter(t => {
+      const date = new Date(t.date)
+      return date.getMonth() === currentMonth && 
+             date.getFullYear() === currentYear &&
+             t.type === 'EXPENSE' &&
+             t.status === 'COMPLETED'
+    })
+
+    const categoryTotals = new Map<string, number>()
+    monthTransactions.forEach(t => {
+      if (t.categoryId) {
+        const categoryName = categories.find(c => c.id === t.categoryId)?.name || 'Sem categoria'
+        const current = categoryTotals.get(categoryName) || 0
+        categoryTotals.set(categoryName, current + Math.abs(t.amount))
+      }
+    })
+
+    const totalExpenses = Array.from(categoryTotals.values()).reduce((acc, val) => acc + val, 0)
+    const sortedCategories = Array.from(categoryTotals.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, amount]) => ({
+        category: name,
+        amount,
+        percentage: totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0,
+      }))
+
+    return sortedCategories
+  }, [transactions, categories])
 
   const quickActions: QuickAction[] = useMemo(() => [
     {
@@ -86,14 +114,14 @@ export const Dashboard: React.FC = () => {
     })
 
     const income = monthTransactions
-      .filter(t => t.type === 'income')
+      .filter(t => t.type === 'INCOME' && t.status === 'COMPLETED')
       .reduce((acc, t) => acc + t.amount, 0)
 
     const expense = monthTransactions
-      .filter(t => t.type === 'expense')
+      .filter(t => t.type === 'EXPENSE' && t.status === 'COMPLETED')
       .reduce((acc, t) => acc + Math.abs(t.amount), 0)
 
-    return { income: income || 12000, expense: expense || 10000 }
+    return { income, expense, savings: income - expense }
   }, [transactions])
 
   const formatCurrency = (value: number) => {
@@ -103,77 +131,110 @@ export const Dashboard: React.FC = () => {
     }).format(value)
   }
 
-  // Dados mockados para Cards & Contas
-  const mockAccounts: CardAccount[] = useMemo(() => [
-    { id: '1', name: 'Nubank', balance: 120, dueDay: 10, lastDigits: '5897' },
-    { id: '2', name: 'Inter', balance: 2300, dueDay: 21, lastDigits: '5897' },
-    { id: '3', name: 'Picpay', balance: 17000, dueDay: 12, lastDigits: '5897' },
-  ], [])
+  // Converter accounts para CardAccount
+  const cardAccounts: CardAccount[] = useMemo(() => {
+    return accounts
+      .filter(a => a.isActive)
+      .slice(0, 3)
+      .map(a => ({
+        id: a.id,
+        name: a.name,
+        balance: a.balance,
+        dueDay: a.dueDay || 0,
+        lastDigits: a.lastDigits || '0000',
+      }))
+  }, [accounts])
 
-  // Dados mockados para Próximas despesas
-  const mockUpcomingExpenses: UpcomingExpense[] = useMemo(() => {
+  // Calcular próximas despesas a partir de transações PENDING ou futuras
+  const upcomingExpenses: UpcomingExpense[] = useMemo(() => {
     const now = new Date()
-    const dueDate = new Date(now.getFullYear(), now.getMonth(), 21)
-    return Array.from({ length: 5 }, (_, i) => ({
-      id: `upcoming-${i + 1}`,
-      description: 'Conta de Luz',
-      amount: 154,
-      dueDate: dueDate.toISOString(),
-      card: 'Crédito Nubank',
-      cardLastDigits: '5897',
-    }))
-  }, [])
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-  // Dados para gráfico Fluxo financeiro (12 meses)
+    const pendingOrFuture = transactions
+      .filter(t => 
+        t.type === 'EXPENSE' && (
+          t.status === 'PENDING' ||
+          (new Date(t.date) >= now && new Date(t.date) <= nextMonth)
+        )
+      )
+      .slice(0, 5)
+      .map(t => {
+        const account = accounts.find(a => a.id === t.accountId)
+        return {
+          id: t.id,
+          description: t.description,
+          amount: Math.abs(t.amount),
+          dueDate: t.date,
+          card: account?.name || 'Conta',
+          cardLastDigits: account?.lastDigits || '0000',
+        }
+      })
+
+    return pendingOrFuture
+  }, [transactions, accounts])
+
+  // Calcular dados para gráfico Fluxo financeiro a partir de transações reais
   const monthlyFlowData = useMemo(() => {
     const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
+    const currentYear = new Date().getFullYear()
+
     return {
       labels: months,
-      income: months.map((_, index) => 8000 + (index * 500)),
-      expense: months.map((_, index) => 7000 + (index * 400)),
+      income: months.map((_, index) => {
+        const monthTransactions = transactions.filter(t => {
+          const date = new Date(t.date)
+          return date.getMonth() === index &&
+                 date.getFullYear() === currentYear &&
+                 t.type === 'INCOME' &&
+                 t.status === 'COMPLETED'
+        })
+        return monthTransactions.reduce((acc, t) => acc + t.amount, 0)
+      }),
+      expense: months.map((_, index) => {
+        const monthTransactions = transactions.filter(t => {
+          const date = new Date(t.date)
+          return date.getMonth() === index &&
+                 date.getFullYear() === currentYear &&
+                 t.type === 'EXPENSE' &&
+                 t.status === 'COMPLETED'
+        })
+        return monthTransactions.reduce((acc, t) => acc + Math.abs(t.amount), 0)
+      }),
     }
-  }, [])
+  }, [transactions])
 
-  // Dados mockados para Extrato detalhado
-  const mockDetailedTransactions: DetailedStatementTransaction[] = useMemo(() => [
-    {
-      id: '1',
-      member: { id: '1', name: 'Membro 1' },
-      date: new Date(2026, 0, 17).toISOString(),
-      description: 'Conta de água',
-      category: 'Manutenção',
-      account: 'Conta corrente',
-      installments: '-',
-      amount: 100,
-      type: 'expense',
-    },
-    {
-      id: '2',
-      member: { id: '2', name: 'Membro 2' },
-      date: new Date(2026, 0, 17).toISOString(),
-      description: 'Conta de Luz',
-      category: 'Manutenção',
-      account: 'Conta corrente',
-      installments: '-',
-      amount: 150,
-      type: 'expense',
-    },
-    {
-      id: '3',
-      member: { id: '3', name: 'Membro 3' },
-      date: new Date(2026, 0, 17).toISOString(),
-      description: 'Passeio no parque',
-      category: 'Lazer',
-      account: 'Cartão XP',
-      installments: '1/1',
-      amount: 750,
-      type: 'expense',
-    },
-  ], [])
+  // Converter transactions para DetailedStatementTransaction
+  const detailedTransactions: DetailedStatementTransaction[] = useMemo(() => {
+    return transactions
+      .filter(t => t.status === 'COMPLETED')
+      .map(t => {
+        const member = t.memberId ? familyMembers.find(m => m.id === t.memberId) : null
+        const category = t.categoryId ? categories.find(c => c.id === t.categoryId) : null
+        const account = t.accountId ? accounts.find(a => a.id === t.accountId) : null
+
+        return {
+          id: t.id,
+          member: {
+            id: member?.id || 'unknown',
+            name: member?.name || 'Sem membro',
+            avatar: member?.avatar,
+          },
+          date: t.date,
+          description: t.description,
+          category: category?.name || 'Sem categoria',
+          account: account?.name || 'Sem conta',
+          installments: t.totalInstallments > 1 
+            ? `${t.installmentNumber || 1}/${t.totalInstallments}`
+            : '-',
+          amount: Math.abs(t.amount),
+          type: t.type === 'INCOME' ? 'income' : 'expense',
+        }
+      })
+  }, [transactions, familyMembers, categories, accounts])
 
   // Filtrar transações do extrato detalhado
   const filteredDetailedTransactions = useMemo(() => {
-    let filtered = mockDetailedTransactions
+    let filtered = detailedTransactions
 
     if (statementFilterType !== 'all') {
       filtered = filtered.filter(t => t.type === statementFilterType)
@@ -188,7 +249,7 @@ export const Dashboard: React.FC = () => {
     }
 
     return filtered
-  }, [mockDetailedTransactions, statementFilterType, statementSearchQuery])
+  }, [detailedTransactions, statementFilterType, statementSearchQuery])
 
   const totalDetailedItems = filteredDetailedTransactions.length
 
@@ -224,7 +285,7 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <BalanceCard
           title="Saldo total"
-          amount={balance || 2000}
+          amount={balance}
           icon={
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -285,12 +346,12 @@ export const Dashboard: React.FC = () => {
         {/* Cards & contas + Próximas despesas */}
         <div className="space-y-6">
           <CardsAccountsSection
-            accounts={mockAccounts}
+            accounts={cardAccounts}
             onAdd={() => navigate('/cards')}
             onViewAll={() => navigate('/cards')}
           />
           <UpcomingExpensesSection
-            expenses={mockUpcomingExpenses}
+            expenses={upcomingExpenses}
             onAdd={() => navigate('/transactions')}
           />
         </div>

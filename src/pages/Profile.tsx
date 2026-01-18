@@ -51,7 +51,6 @@ export const Profile: React.FC = () => {
         initialData={{
           name: user.name,
           email: user.email,
-          phone: user.phone,
         }}
         onSubmit={handleSubmit}
         isLoading={isLoading}

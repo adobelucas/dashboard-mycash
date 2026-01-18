@@ -6,52 +6,8 @@ import { transactionsApi } from '@/services/api'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import type { Transaction } from '@/types'
 
-// Dados mockados para fallback
-const mockTransactions = [
-  {
-    id: '1',
-    description: 'Salário',
-    amount: 5000,
-    type: 'income' as const,
-    category: 'Salário',
-    date: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    description: 'Supermercado',
-    amount: -350.50,
-    type: 'expense' as const,
-    category: 'Alimentação',
-    date: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    description: 'Netflix',
-    amount: -29.90,
-    type: 'expense' as const,
-    category: 'Entretenimento',
-    date: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    id: '4',
-    description: 'Freelance',
-    amount: 1200,
-    type: 'income' as const,
-    category: 'Trabalho',
-    date: new Date(Date.now() - 259200000).toISOString(),
-  },
-  {
-    id: '5',
-    description: 'Restaurante',
-    amount: -85.00,
-    type: 'expense' as const,
-    category: 'Alimentação',
-    date: new Date(Date.now() - 345600000).toISOString(),
-  },
-]
-
 export const Transactions: React.FC = () => {
-  const { transactions, isLoading, user, refreshTransactions } = useApp()
+  const { transactions, categories: categoriesContext, isLoading, user, refreshTransactions } = useApp()
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -63,27 +19,33 @@ export const Transactions: React.FC = () => {
   })
   const { showToast } = useToast()
 
-  const categories = useMemo(() => {
-    const uniqueCategories = new Set(transactions.map(t => t.category))
-    return Array.from(uniqueCategories).sort()
-  }, [transactions])
+  // Extrair nomes de categorias para filtro
+  const categoryNames = useMemo(() => {
+    return categoriesContext
+      .filter(c => c.isActive)
+      .map(c => c.name)
+      .sort()
+  }, [categoriesContext])
 
   const filteredTransactions = useMemo(() => {
-    const dataToFilter: Transaction[] = transactions.length > 0 ? transactions : mockTransactions.map(t => ({
-      ...t,
-      userId: user?.id || '',
-      createdAt: t.date,
-      updatedAt: t.date,
-    }))
-    return dataToFilter.filter((transaction) => {
-      const typeMatch = selectedType === 'all' || transaction.type === selectedType
-      const categoryMatch = !selectedCategory || transaction.category === selectedCategory
+    return transactions.filter((transaction) => {
+      // Converter type para comparação
+      const transactionType = transaction.type === 'INCOME' ? 'income' : 'expense'
+      const typeMatch = selectedType === 'all' || transactionType === selectedType
+      
+      // Buscar nome da categoria
+      const category = transaction.categoryId 
+        ? categoriesContext.find(c => c.id === transaction.categoryId)?.name || ''
+        : ''
+      const categoryMatch = !selectedCategory || category === selectedCategory
+      
       const searchMatch = !searchQuery || 
         transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        transaction.category.toLowerCase().includes(searchQuery.toLowerCase())
+        category.toLowerCase().includes(searchQuery.toLowerCase())
+      
       return typeMatch && categoryMatch && searchMatch
     })
-  }, [transactions, selectedType, selectedCategory, searchQuery])
+  }, [transactions, categoriesContext, selectedType, selectedCategory, searchQuery])
 
   const { displayedItems, hasMore, loadMoreRef } = useInfiniteScroll(filteredTransactions, 10)
 
@@ -142,19 +104,25 @@ export const Transactions: React.FC = () => {
         selectedCategory={selectedCategory}
         onTypeChange={setSelectedType}
         onCategoryChange={setSelectedCategory}
-        categories={categories.length > 0 ? categories : ['Salário', 'Alimentação', 'Entretenimento', 'Trabalho', 'Transporte', 'Saúde', 'Educação', 'Moradia', 'Outros']}
+        categories={categoryNames.length > 0 ? categoryNames : []}
       />
 
       {/* Lista de Transações */}
       <TransactionList
-        transactions={displayedItems.map(t => ({
-          id: t.id,
-          description: t.description,
-          amount: t.amount,
-          type: t.type,
-          category: t.category,
-          date: t.date,
-        }))}
+        transactions={displayedItems.map(t => {
+          const category = t.categoryId 
+            ? categoriesContext.find(c => c.id === t.categoryId)?.name || 'Sem categoria'
+            : 'Sem categoria'
+          
+          return {
+            id: t.id,
+            description: t.description,
+            amount: t.amount,
+            type: t.type === 'INCOME' ? 'income' : 'expense',
+            category,
+            date: t.date,
+          }
+        })}
         title={`${filteredTransactions.length} transações encontradas`}
         onTransactionClick={(transaction) => {
           const fullTransaction = displayedItems.find(t => t.id === transaction.id)

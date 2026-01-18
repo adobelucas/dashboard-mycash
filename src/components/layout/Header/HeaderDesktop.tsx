@@ -1,17 +1,22 @@
 import React, { useState } from 'react'
 import { Input, Button, Avatar } from '@/components/ui'
 import { useNavigate } from 'react-router-dom'
+import { useApp } from '@/contexts'
 
 export const HeaderDesktop: React.FC = () => {
   const navigate = useNavigate()
+  const { familyMembers } = useApp()
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Mock de membros para avatares (pode vir de um contexto de equipe/grupo)
-  const members = [
-    { id: '1', name: 'Usuário 1', avatar: undefined },
-    { id: '2', name: 'Usuário 2', avatar: undefined },
-    { id: '3', name: 'Usuário 3', avatar: undefined },
-  ]
+  // Usar familyMembers reais
+  const members = familyMembers
+    .filter(m => m.isActive)
+    .slice(0, 3)
+    .map(m => ({
+      id: m.id,
+      name: m.name,
+      avatar: m.avatar,
+    }))
 
   // Formatar data atual para o seletor (ex: "01 Jan - 31 Jan 2026")
   const formatDateRange = () => {

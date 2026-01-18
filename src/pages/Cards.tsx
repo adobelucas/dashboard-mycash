@@ -2,40 +2,21 @@ import React, { useState } from 'react'
 import { CardList, CardForm } from '@/components/cards'
 import { Loading, Modal, ConfirmDialog, useToast } from '@/components/ui'
 import { useApp } from '@/contexts'
-import { cardsApi } from '@/services/api'
-
-// Dados mockados para fallback
-const mockCards = [
-  {
-    id: '1',
-    name: 'Cartão Principal',
-    number: '1234',
-    type: 'credit' as const,
-    brand: 'visa' as const,
-    limit: 5000,
-    availableLimit: 3500,
-  },
-  {
-    id: '2',
-    name: 'Cartão de Débito',
-    number: '5678',
-    type: 'debit' as const,
-    brand: 'mastercard' as const,
-  },
-]
+import { accountsApi } from '@/services/api'
+import type { Account } from '@/types'
 
 export const Cards: React.FC = () => {
-  const { cards, isLoading, user, refreshCards } = useApp()
+  const { accounts, isLoading, user, refreshAccounts } = useApp()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingCard, setEditingCard] = useState<typeof cards[0] | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; card: typeof cards[0] | null }>({
+  const [editingCard, setEditingCard] = useState<Account | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; card: Account | null }>({
     isOpen: false,
     card: null,
   })
   const { showToast } = useToast()
 
   const handleCardClick = (cardId: string) => {
-    const card = cards.find(c => c.id === cardId)
+    const card = accounts.find(c => c.id === cardId)
     if (card) {
       setEditingCard(card)
       setIsModalOpen(true)
@@ -65,11 +46,19 @@ export const Cards: React.FC = () => {
 
       {/* Lista de Cartões */}
       <CardList
-        cards={cards.length > 0 ? cards : mockCards}
+        cards={accounts.map(acc => ({
+          id: acc.id,
+          name: acc.name,
+          number: acc.lastDigits || '0000',
+          type: acc.type === 'CREDIT_CARD' ? 'credit' : 'debit',
+          brand: 'visa',
+          limit: acc.creditLimit,
+          availableLimit: acc.creditLimit ? (acc.creditLimit - (acc.currentBill || 0)) : undefined,
+        }))}
         onCardClick={handleCardClick}
         onAddCard={handleAddCard}
         onCardDelete={(cardId) => {
-          const card = cards.find(c => c.id === cardId)
+          const card = accounts.find(c => c.id === cardId)
           if (card) {
             setDeleteConfirm({ isOpen: true, card })
           }
@@ -88,12 +77,23 @@ export const Cards: React.FC = () => {
           size="md"
         >
           <CardForm
-            card={editingCard || undefined}
+            card={editingCard ? {
+              id: editingCard.id,
+              name: editingCard.name,
+              number: editingCard.lastDigits || '0000',
+              type: editingCard.type === 'CREDIT_CARD' ? 'credit' : 'debit',
+              brand: 'visa',
+              limit: editingCard.creditLimit,
+              availableLimit: editingCard.creditLimit ? (editingCard.creditLimit - (editingCard.currentBill || 0)) : undefined,
+              userId: editingCard.userId,
+              createdAt: editingCard.createdAt,
+              updatedAt: editingCard.updatedAt,
+            } : undefined}
             userId={user.id}
             onSuccess={() => {
               setIsModalOpen(false)
               setEditingCard(null)
-              refreshCards()
+              refreshAccounts()
             }}
             onCancel={() => {
               setIsModalOpen(false)
@@ -110,9 +110,9 @@ export const Cards: React.FC = () => {
         onConfirm={async () => {
           if (deleteConfirm.card) {
             try {
-              await cardsApi.delete(deleteConfirm.card.id)
-              showToast('Cartão excluído com sucesso!', 'success')
-              await refreshCards()
+              await accountsApi.delete(deleteConfirm.card.id)
+              showToast('Conta excluída com sucesso!', 'success')
+              await refreshAccounts()
               setDeleteConfirm({ isOpen: false, card: null })
             } catch (error) {
               console.error('Error deleting card:', error)
