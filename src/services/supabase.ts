@@ -2,10 +2,18 @@ import { createClient } from '@supabase/supabase-js'
 
 // Configuração do Supabase
 // Em produção, essas variáveis devem vir de variáveis de ambiente
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Criar cliente Supabase com valores placeholder para evitar erros
+// O cliente funcionará mesmo sem configuração real (apenas não fará requisições)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+})
 
 // Tipos para as tabelas do Supabase
 export interface Database {

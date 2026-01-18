@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { AppProvider, ThemeProvider } from '@/contexts'
 import { ErrorBoundary, ToastProvider } from '@/components/ui'
 import App from './App.tsx'
-import * as serviceWorker from './serviceWorker'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -18,8 +17,3 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </React.StrictMode>,
 )
-
-// Registra service worker para PWA
-if (import.meta.env.PROD) {
-  serviceWorker.register()
-}
