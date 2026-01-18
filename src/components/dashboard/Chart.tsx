@@ -7,11 +7,21 @@ export interface ChartData {
   color?: string
 }
 
+export interface AreaChartSeries {
+  label: string
+  data: number[]
+  color: string
+}
+
 export interface ChartProps {
   title: string
   data: ChartData[]
-  type?: 'bar' | 'line' | 'pie'
+  type?: 'bar' | 'line' | 'pie' | 'area'
   height?: number
+  // Para gráfico de área: séries de dados e labels do eixo X
+  areaSeries?: AreaChartSeries[]
+  areaLabels?: string[]
+  areaMaxValue?: number
 }
 
 export const Chart: React.FC<ChartProps> = ({
@@ -19,6 +29,9 @@ export const Chart: React.FC<ChartProps> = ({
   data,
   type = 'bar',
   height = 200,
+  areaSeries,
+  areaLabels,
+  areaMaxValue,
 }) => {
   const maxValue = Math.max(...data.map(d => d.value), 1)
 
@@ -49,6 +62,148 @@ export const Chart: React.FC<ChartProps> = ({
                   currency: 'BRL',
                 }).format(item.value)}
               </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    )
+  }
+
+  if (type === 'area' && areaSeries && areaLabels) {
+    const maxVal = areaMaxValue || Math.max(...areaSeries.flatMap(s => s.data), 1)
+    const padding = 10
+    const chartWidth = 100 - padding * 2
+    const chartHeight = 100 - padding * 2
+    const dataPoints = areaLabels.length
+
+    // Calcular pontos para cada série
+    const seriesPaths = areaSeries.map((series) => {
+      const points: string[] = []
+      const areaPath: string[] = []
+      
+      series.data.forEach((value, index) => {
+        const x = padding + (index / (dataPoints - 1 || 1)) * chartWidth
+        const y = padding + chartHeight - (value / maxVal) * chartHeight
+        points.push(`${x},${y}`)
+        
+        if (index === 0) {
+          areaPath.push(`M ${x} ${padding + chartHeight}`)
+        }
+        areaPath.push(`L ${x} ${y}`)
+      })
+      
+      // Fechar a área
+      const lastX = padding + ((dataPoints - 1) / (dataPoints - 1 || 1)) * chartWidth
+      areaPath.push(`L ${lastX} ${padding + chartHeight} Z`)
+      
+      return {
+        linePoints: points.join(' '),
+        areaPath: areaPath.join(' '),
+        color: series.color,
+      }
+    })
+
+    return (
+      <Card className="w-full">
+        <div className="flex items-center gap-2 mb-4">
+          <svg
+            className="w-5 h-5 text-text-tertiary"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+        </div>
+        <div style={{ height: `${height}px` }} className="relative">
+          <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
+            {/* Grid lines e labels do eixo Y */}
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+              const y = padding + chartHeight - (ratio * chartHeight)
+              const value = maxVal * ratio
+              return (
+                <g key={ratio}>
+                  <line
+                    x1={padding}
+                    y1={y}
+                    x2={padding + chartWidth}
+                    y2={y}
+                    stroke="var(--color-border)"
+                    strokeWidth="0.5"
+                    opacity="0.3"
+                  />
+                  <text
+                    x={padding - 2}
+                    y={y + 1}
+                    fontSize="3"
+                    fill="var(--color-text-tertiary)"
+                    textAnchor="end"
+                    dominantBaseline="middle"
+                  >
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      maximumFractionDigits: 0,
+                    }).format(value)}
+                  </text>
+                </g>
+              )
+            })}
+            
+            {/* Áreas coloridas (desenhar primeiro para ficar atrás das linhas) */}
+            {seriesPaths.map((series, idx) => (
+              <path
+                key={`area-${idx}`}
+                d={series.areaPath}
+                fill={series.color}
+                opacity="0.3"
+              />
+            ))}
+            
+            {/* Linhas */}
+            {seriesPaths.map((series, idx) => (
+              <polyline
+                key={`line-${idx}`}
+                points={series.linePoints}
+                fill="none"
+                stroke={series.color}
+                strokeWidth="1.5"
+              />
+            ))}
+            
+            {/* Labels do eixo X (meses) */}
+            {areaLabels.map((label, index) => {
+              const x = padding + (index / (dataPoints - 1 || 1)) * chartWidth
+              return (
+                <text
+                  key={label}
+                  x={x}
+                  y={padding + chartHeight + 4}
+                  fontSize="3"
+                  fill="var(--color-text-tertiary)"
+                  textAnchor="middle"
+                >
+                  {label}
+                </text>
+              )
+            })}
+          </svg>
+        </div>
+        {/* Legenda */}
+        <div className="flex items-center justify-center gap-4 mt-4">
+          {areaSeries.map((series) => (
+            <div key={series.label} className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: series.color }}
+              />
+              <span className="text-xs text-text-secondary">{series.label}</span>
             </div>
           ))}
         </div>

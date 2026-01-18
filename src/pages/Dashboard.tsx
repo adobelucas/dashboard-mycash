@@ -127,11 +127,11 @@ export const Dashboard: React.FC = () => {
   // Dados para gráfico Fluxo financeiro (12 meses)
   const monthlyFlowData = useMemo(() => {
     const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
-    return months.map((month, index) => ({
-      label: month,
-      income: 8000 + (index * 500),
-      expense: 7000 + (index * 400),
-    }))
+    return {
+      labels: months,
+      income: months.map((_, index) => 8000 + (index * 500)),
+      expense: months.map((_, index) => 7000 + (index * 400)),
+    }
   }, [])
 
   // Dados mockados para Extrato detalhado
@@ -262,12 +262,23 @@ export const Dashboard: React.FC = () => {
         <div>
           <Chart
             title="Fluxo financeiro"
-            data={monthlyFlowData.flatMap((month) => [
-              { label: `${month.label} - Receitas`, value: month.income, color: 'var(--color-success)' },
-              { label: `${month.label} - Despesas`, value: month.expense, color: 'var(--color-error)' },
-            ])}
-            type="line"
+            data={[]}
+            type="area"
             height={250}
+            areaSeries={[
+              {
+                label: 'Receitas',
+                data: monthlyFlowData.income,
+                color: 'var(--color-success)',
+              },
+              {
+                label: 'Despesas',
+                data: monthlyFlowData.expense,
+                color: 'var(--color-error)',
+              },
+            ]}
+            areaLabels={monthlyFlowData.labels}
+            areaMaxValue={17500}
           />
         </div>
 
