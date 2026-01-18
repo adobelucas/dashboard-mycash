@@ -191,29 +191,33 @@ export const Dashboard: React.FC = () => {
             height={150}
           />
           {/* Gráfico de Categorias */}
-          {transactions.length > 0 && (
-            <Chart
-              title="Gastos por Categoria"
-              data={useMemo(() => {
-                const categoryTotals = transactions
-                  .filter(t => t.type === 'expense')
-                  .reduce((acc, t) => {
-                    acc[t.category] = (acc[t.category] || 0) + Math.abs(t.amount)
-                    return acc
-                  }, {} as Record<string, number>)
-                
-                return Object.entries(categoryTotals)
-                  .map(([category, total]) => ({
-                    label: category,
-                    value: total,
-                  }))
-                  .sort((a, b) => b.value - a.value)
-                  .slice(0, 5)
-              }, [transactions])}
-              type="pie"
-              height={200}
-            />
-          )}
+          {transactions.length > 0 && (() => {
+            const categoryData = useMemo(() => {
+              const categoryTotals = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((acc, t) => {
+                  acc[t.category] = (acc[t.category] || 0) + Math.abs(t.amount)
+                  return acc
+                }, {} as Record<string, number>)
+              
+              return Object.entries(categoryTotals)
+                .map(([category, total]) => ({
+                  label: category,
+                  value: total,
+                }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 5)
+            }, [transactions])
+
+            return (
+              <Chart
+                title="Gastos por Categoria"
+                data={categoryData}
+                type="pie"
+                height={200}
+              />
+            )
+          })()}
         </div>
       </div>
     </div>
