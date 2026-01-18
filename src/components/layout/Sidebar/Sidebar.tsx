@@ -2,6 +2,7 @@ import React from 'react'
 import { SidebarLogo } from './SidebarLogo'
 import { SidebarItem } from './SidebarItem'
 import { SidebarToggle } from './SidebarToggle'
+import { SidebarFooter } from './SidebarFooter'
 import { ThemeToggle } from '@/components/ui'
 import { useSidebar } from '@/hooks/useSidebar'
 
@@ -80,6 +81,9 @@ export const Sidebar: React.FC = () => {
         </div>
         <SidebarToggle isExpanded={isExpanded} onToggle={toggle} />
       </div>
+
+      {/* Footer com avatar do usuário */}
+      <SidebarFooter isCollapsed={!isExpanded} />
     </aside>
   )
 }

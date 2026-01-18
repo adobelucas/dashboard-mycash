@@ -1,4 +1,5 @@
 export { HeaderMobile } from './HeaderMobile'
+export { HeaderDesktop } from './HeaderDesktop'
 export { MobileMenu } from './MobileMenu'
 export { HeaderActions } from './HeaderActions'
 export type { MobileMenuProps } from './MobileMenu'

@@ -42,8 +42,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     // Definir um usuário mock ou vazio para trabalhar sem autenticação
     setUser({
       id: 'demo-user',
-      name: 'Usuário Demo',
-      email: 'demo@mycash.com',
+      name: 'Lucas Marte',
+      email: 'lucasmarte@gmail.com',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Sidebar } from './Sidebar'
-import { HeaderMobile } from './Header'
+import { HeaderMobile, HeaderDesktop } from './Header'
 import { SkipToContent } from './SkipToContent'
 import { useIsDesktop } from '@/hooks'
 
@@ -19,6 +19,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Conteúdo principal */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Header Desktop - apenas desktop (≥1280px) */}
+        {isDesktop && <HeaderDesktop />}
+        
         {/* Header Mobile - apenas mobile/tablet (<1280px) */}
         {!isDesktop && <HeaderMobile />}
 
