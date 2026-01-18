@@ -33,6 +33,10 @@ const mockTransactions = [
   },
 ]
 
+export const Dashboard: React.FC = () => {
+  const navigate = useNavigate()
+  const { transactions, balance, isLoading } = useApp()
+
   const quickActions: QuickAction[] = useMemo(() => [
     {
       label: 'Nova Receita',
@@ -75,10 +79,6 @@ const mockTransactions = [
       variant: 'outline',
     },
   ], [navigate])
-
-export const Dashboard: React.FC = () => {
-  const navigate = useNavigate()
-  const { transactions, balance, isLoading } = useApp()
 
   const monthlyStats = useMemo(() => {
     const now = new Date()

@@ -4,6 +4,7 @@ import { Button, Loading, Modal, ConfirmDialog, useToast } from '@/components/ui
 import { useApp } from '@/contexts'
 import { transactionsApi } from '@/services/api'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+import type { Transaction } from '@/types'
 
 // Dados mockados para fallback
 const mockTransactions = [
@@ -49,16 +50,14 @@ const mockTransactions = [
   },
 ]
 
-const categories = ['Salário', 'Alimentação', 'Entretenimento', 'Trabalho', 'Transporte']
-
 export const Transactions: React.FC = () => {
   const { transactions, isLoading, user, refreshTransactions } = useApp()
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<typeof transactions[0] | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: typeof transactions[0] | null }>({
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Transaction | null }>({
     isOpen: false,
     transaction: null,
   })
@@ -70,7 +69,12 @@ export const Transactions: React.FC = () => {
   }, [transactions])
 
   const filteredTransactions = useMemo(() => {
-    const dataToFilter = transactions.length > 0 ? transactions : mockTransactions
+    const dataToFilter: Transaction[] = transactions.length > 0 ? transactions : mockTransactions.map(t => ({
+      ...t,
+      userId: user?.id || '',
+      createdAt: t.date,
+      updatedAt: t.date,
+    }))
     return dataToFilter.filter((transaction) => {
       const typeMatch = selectedType === 'all' || transaction.type === selectedType
       const categoryMatch = !selectedCategory || transaction.category === selectedCategory
@@ -138,7 +142,7 @@ export const Transactions: React.FC = () => {
         selectedCategory={selectedCategory}
         onTypeChange={setSelectedType}
         onCategoryChange={setSelectedCategory}
-        categories={categories.length > 0 ? categories : ['Salário', 'Alimentação', 'Entretenimento', 'Trabalho', 'Transporte']}
+        categories={categories.length > 0 ? categories : ['Salário', 'Alimentação', 'Entretenimento', 'Trabalho', 'Transporte', 'Saúde', 'Educação', 'Moradia', 'Outros']}
       />
 
       {/* Lista de Transações */}

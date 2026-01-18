@@ -14,7 +14,18 @@ export const transactionsApi = {
       .order('date', { ascending: false })
 
     if (error) throw error
-    return data as Transaction[]
+    // Transformar de snake_case para camelCase
+    return (data || []).map(item => ({
+      id: item.id,
+      type: item.type,
+      amount: item.amount,
+      description: item.description,
+      category: item.category,
+      date: item.date,
+      userId: item.user_id,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
+    })) as Transaction[]
   },
 
   async getById(id: string) {
@@ -25,10 +36,28 @@ export const transactionsApi = {
       .single()
 
     if (error) throw error
-    return data as Transaction
+    // Transformar de snake_case para camelCase
+    return {
+      id: data.id,
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+      category: data.category,
+      date: data.date,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    } as Transaction
   },
 
-  async create(transaction: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>) {
+  async create(transaction: {
+    user_id: string
+    type: 'income' | 'expense'
+    amount: number
+    description: string
+    category: string
+    date: string
+  }) {
     const { data, error } = await supabase
       .from('transactions')
       .insert([transaction])
@@ -36,10 +65,29 @@ export const transactionsApi = {
       .single()
 
     if (error) throw error
-    return data as Transaction
+    // Transformar de snake_case para camelCase
+    const transformed = {
+      id: data.id,
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+      category: data.category,
+      date: data.date,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+    return transformed as Transaction
   },
 
-  async update(id: string, updates: Partial<Transaction>) {
+  async update(id: string, updates: {
+    user_id?: string
+    type?: 'income' | 'expense'
+    amount?: number
+    description?: string
+    category?: string
+    date?: string
+  }) {
     const { data, error } = await supabase
       .from('transactions')
       .update(updates)
@@ -48,14 +96,26 @@ export const transactionsApi = {
       .single()
 
     if (error) throw error
-    return data as Transaction
+    // Transformar de snake_case para camelCase
+    const transformed = {
+      id: data.id,
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+      category: data.category,
+      date: data.date,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+    return transformed as Transaction
   },
 
   async delete(id: string) {
     const { error } = await supabase
       .from('transactions')
-      .eq('id', id)
       .delete()
+      .eq('id', id)
 
     if (error) throw error
   },
@@ -74,7 +134,19 @@ export const cardsApi = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data as Card[]
+    // Transformar de snake_case para camelCase
+    return (data || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      number: item.number,
+      type: item.type,
+      brand: item.brand,
+      limit: item.limit,
+      availableLimit: item.available_limit,
+      userId: item.user_id,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
+    })) as Card[]
   },
 
   async getById(id: string) {
@@ -85,10 +157,30 @@ export const cardsApi = {
       .single()
 
     if (error) throw error
-    return data as Card
+    // Transformar de snake_case para camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      number: data.number,
+      type: data.type,
+      brand: data.brand,
+      limit: data.limit,
+      availableLimit: data.available_limit,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    } as Card
   },
 
-  async create(card: Omit<Card, 'id' | 'created_at' | 'updated_at'>) {
+  async create(card: {
+    user_id: string
+    name: string
+    number: string
+    type: 'credit' | 'debit'
+    brand: 'visa' | 'mastercard' | 'elo' | 'other'
+    limit?: number
+    available_limit?: number
+  }) {
     const { data, error } = await supabase
       .from('cards')
       .insert([card])
@@ -96,10 +188,31 @@ export const cardsApi = {
       .single()
 
     if (error) throw error
-    return data as Card
+    // Transformar de snake_case para camelCase
+    const transformed = {
+      id: data.id,
+      name: data.name,
+      number: data.number,
+      type: data.type,
+      brand: data.brand,
+      limit: data.limit,
+      availableLimit: data.available_limit,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+    return transformed as Card
   },
 
-  async update(id: string, updates: Partial<Card>) {
+  async update(id: string, updates: {
+    user_id?: string
+    name?: string
+    number?: string
+    type?: 'credit' | 'debit'
+    brand?: 'visa' | 'mastercard' | 'elo' | 'other'
+    limit?: number
+    available_limit?: number
+  }) {
     const { data, error } = await supabase
       .from('cards')
       .update(updates)
@@ -108,14 +221,27 @@ export const cardsApi = {
       .single()
 
     if (error) throw error
-    return data as Card
+    // Transformar de snake_case para camelCase
+    const transformed = {
+      id: data.id,
+      name: data.name,
+      number: data.number,
+      type: data.type,
+      brand: data.brand,
+      limit: data.limit,
+      availableLimit: data.available_limit,
+      userId: data.user_id,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    }
+    return transformed as Card
   },
 
   async delete(id: string) {
     const { error } = await supabase
       .from('cards')
-      .eq('id', id)
       .delete()
+      .eq('id', id)
 
     if (error) throw error
   },

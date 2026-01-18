@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 const SIDEBAR_STORAGE_KEY = 'sidebar-expanded'
 

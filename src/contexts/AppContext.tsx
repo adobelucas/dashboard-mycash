@@ -56,7 +56,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     loadUser()
 
     // Listener para mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         try {
           const userData = await userApi.getProfile(session.user.id)
